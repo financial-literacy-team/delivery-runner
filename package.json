@@ -1,6 +1,6 @@
 {
   "name": "@financial-literacy-team/delivery-runner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Delivery mini-game for financial literacy game",
   "keywords": [
     "runner"
@@ -17,6 +17,13 @@
   "author": "govUA",
   "type": "commonjs",
   "main": "dist/delivery-runner.umd.ts",
+  "module": "dist/delivery-runner.es.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/delivery-runner.es.ts",
+      "require": "./dist/delivery-runner.umd.ts"
+    }
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
