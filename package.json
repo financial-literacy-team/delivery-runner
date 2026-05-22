@@ -16,7 +16,7 @@
   "license": "ISC",
   "author": "govUA",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "dist/delivery-runner.umd.ts",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
