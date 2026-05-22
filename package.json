@@ -1,0 +1,27 @@
+{
+  "name": "@financial-literacy-team/delivery-runner",
+  "version": "1.0.0",
+  "description": "Delivery mini-game for financial literacy game",
+  "keywords": [
+    "runner"
+  ],
+  "homepage": "https://github.com/financial-literacy-team/delivery-runner#readme",
+  "bugs": {
+    "url": "https://github.com/financial-literacy-team/delivery-runner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/financial-literacy-team/delivery-runner.git"
+  },
+  "license": "ISC",
+  "author": "govUA",
+  "type": "commonjs",
+  "main": "index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build"
+  }
+}
