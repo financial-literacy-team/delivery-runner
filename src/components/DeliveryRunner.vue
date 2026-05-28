@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'gameOver', result: { time: number; moneyLost: number; hits: number }): void
+  (e: 'gameOver', result: { time: number; balanceLost: number; hits: number }): void
 }>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -31,6 +31,7 @@ let speedMultiplier = props.transportSpeed
 
 const player = {
   lane: 1,
+  currentX: LANE_WIDTH + (LANE_WIDTH - 40) / 2,
   width: 40,
   height: 60,
   color: '#3498db'
@@ -56,7 +57,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 const spawnObstacle = () => {
-  if (Math.random() < 0.02 * (speedMultiplier / 5)) {
+  const MIN_GAP = 220;
+  const lastObstacle = obstacles[obstacles.length - 1];
+
+  const canSpawn = !lastObstacle || (lastObstacle.y > MIN_GAP - 50);
+
+  if (canSpawn && Math.random() < 0.02 * (speedMultiplier / 5)) {
     obstacles.push({
       lane: Math.floor(Math.random() * 3),
       y: -50,
@@ -80,10 +86,12 @@ const gameLoop = (timestamp: number) => {
   ctx.lineTo(LANE_WIDTH * 2, CANVAS_HEIGHT)
   ctx.stroke()
 
-  const playerX = player.lane * LANE_WIDTH + (LANE_WIDTH - player.width) / 2
+  const targetX = player.lane * LANE_WIDTH + (LANE_WIDTH - player.width) / 2
+  player.currentX += (targetX - player.currentX) * 0.15
+
   const playerY = CANVAS_HEIGHT - player.height - 20
   ctx.fillStyle = player.color
-  ctx.fillRect(playerX, playerY, player.width, player.height)
+  ctx.fillRect(player.currentX, playerY, player.width, player.height)
 
   spawnObstacle()
 
@@ -97,8 +105,8 @@ const gameLoop = (timestamp: number) => {
     ctx.fillRect(obsX, obs.y, obs.width, obs.height)
 
     const isColliding =
-        playerX < obsX + obs.width &&
-        playerX + player.width > obsX &&
+        player.currentX < obsX + obs.width &&
+        player.currentX + player.width > obsX &&
         playerY < obs.y + obs.height &&
         playerY + player.height > obs.y
 
@@ -133,6 +141,10 @@ const startGame = () => {
   speedMultiplier = props.transportSpeed
   obstacles = []
   hits = 0
+
+  player.lane = 1
+  player.currentX = LANE_WIDTH + (LANE_WIDTH - 40) / 2
+
   startTime = Date.now()
   isPlaying = true
 
@@ -146,11 +158,11 @@ const endGame = () => {
   cancelAnimationFrame(animationFrameId)
 
   const timeSpent = Math.floor((Date.now() - startTime) / 1000)
-  const moneyLost = hits * 50
+  const balanceLost = hits * 50
 
   emit('gameOver', {
     time: timeSpent,
-    moneyLost: moneyLost,
+    balanceLost: balanceLost,
     hits: hits
   })
 }

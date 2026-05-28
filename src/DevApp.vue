@@ -18,7 +18,7 @@ const handleGameOver = (result: any) => {
       <h2>Результати:</h2>
       <p>Час доставки: {{ gameResults.time }} сек</p>
       <p>Зіткнень: {{ gameResults.hits }}</p>
-      <p>Втрачено грошей: {{ gameResults.moneyLost }}</p>
+      <p>Втрата балансу: {{ gameResults.balanceLost }}</p>
       <button @click="gameResults = null">Спробувати ще раз</button>
     </div>
 

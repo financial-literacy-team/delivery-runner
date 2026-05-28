@@ -4,6 +4,6 @@ export {DeliveryRunner}
 
 export interface RunnerResults {
     time: number;
-    moneyLost: number;
+    balanceLost: number;
     hits: number;
 }
