@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'gameOver', result: { time: number; balanceLost: number; hits: number }): void
+  (e: 'gameOver', result: { time: 'fast' | 'slow'; balanceLost: number; hits: number }): void
 }>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -22,6 +22,7 @@ let animationFrameId: number
 const CANVAS_WIDTH = 400
 const CANVAS_HEIGHT = 600
 const LANE_WIDTH = CANVAS_WIDTH / 3
+const GAME_DURATION = 30
 
 let isPlaying = false
 let currentLives = props.lives
@@ -59,7 +60,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
 const spawnObstacle = () => {
   const MIN_GAP = 220;
   const lastObstacle = obstacles[obstacles.length - 1];
-
   const canSpawn = !lastObstacle || (lastObstacle.y > MIN_GAP - 50);
 
   if (canSpawn && Math.random() < 0.02 * (speedMultiplier / 5)) {
@@ -75,6 +75,21 @@ const spawnObstacle = () => {
 
 const gameLoop = (timestamp: number) => {
   if (!isPlaying || !ctx) return
+
+  const elapsedTimeMs = Date.now() - startTime
+  const timeLeft = Math.max(0, GAME_DURATION - Math.floor(elapsedTimeMs / 1000))
+
+  if (timeLeft <= 0) {
+    endGame()
+    return
+  }
+
+  const progress = Math.min(elapsedTimeMs / (GAME_DURATION * 1000), 1)
+  const sigmoidX = (progress * 10) - 5
+  const sigmoidValue = 1 / (1 + Math.exp(-sigmoidX))
+
+  const MAX_SPEED = 18
+  speedMultiplier = props.transportSpeed + (MAX_SPEED - props.transportSpeed) * sigmoidValue
 
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
@@ -114,7 +129,6 @@ const gameLoop = (timestamp: number) => {
       obstacles.splice(i, 1)
       currentLives--
       hits++
-      speedMultiplier = Math.max(3, speedMultiplier - 1)
 
       if (currentLives <= 0) {
         endGame()
@@ -122,13 +136,13 @@ const gameLoop = (timestamp: number) => {
       }
     } else if (obs.y > CANVAS_HEIGHT) {
       obstacles.splice(i, 1)
-      speedMultiplier += 0.05
     }
   }
 
   ctx.fillStyle = '#2c3e50'
   ctx.font = '20px Arial'
   ctx.fillText(`Життя: ${currentLives}`, 10, 30)
+  ctx.fillText(`Час: ${timeLeft} с`, CANVAS_WIDTH - 110, 30)
 
   animationFrameId = requestAnimationFrame(gameLoop)
 }
@@ -157,11 +171,11 @@ const endGame = () => {
   window.removeEventListener('keydown', handleKeyDown)
   cancelAnimationFrame(animationFrameId)
 
-  const timeSpent = Math.floor((Date.now() - startTime) / 1000)
   const balanceLost = hits * 50
+  const timeResult = currentLives > 0 ? 'fast' : 'slow'
 
   emit('gameOver', {
-    time: timeSpent,
+    time: timeResult,
     balanceLost: balanceLost,
     hits: hits
   })

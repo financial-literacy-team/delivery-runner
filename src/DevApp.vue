@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import DeliveryRunner from './components/DeliveryRunner.vue'
 
-const gameResults = ref(null)
+const gameResults = ref<any>(null)
 
 const handleGameOver = (result: any) => {
   console.log('Гра завершена!', result)
@@ -16,7 +16,7 @@ const handleGameOver = (result: any) => {
 
     <div v-if="gameResults" style="margin-bottom: 20px; color: #e74c3c;">
       <h2>Результати:</h2>
-      <p>Час доставки: {{ gameResults.time }} сек</p>
+      <p>Час доставки: {{ gameResults.time }}</p>
       <p>Зіткнень: {{ gameResults.hits }}</p>
       <p>Втрата балансу: {{ gameResults.balanceLost }}</p>
       <button @click="gameResults = null">Спробувати ще раз</button>
