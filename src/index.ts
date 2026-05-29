@@ -4,6 +4,6 @@ export {DeliveryRunner}
 
 export interface RunnerResults {
     time: 'fast' | 'slow';
-    balanceLost: number;
+    tripCost: number;
     hits: number;
 }

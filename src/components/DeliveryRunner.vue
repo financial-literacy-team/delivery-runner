@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted} from 'vue'
+import {ref, onMounted, onUnmounted, computed} from 'vue'
+
+type TransportType = 'bike' | 'scooter' | 'car';
 
 interface Props {
-  lives: number;
-  transportSpeed: number;
+  transportType: TransportType;
+  transportSpeed?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  lives: 3,
+  transportType: 'bike',
   transportSpeed: 5
 })
 
 const emit = defineEmits<{
-  (e: 'gameOver', result: { time: 'fast' | 'slow'; balanceLost: number; hits: number }): void
+  (e: 'gameOver', result: { time: 'fast' | 'slow'; tripCost: number; hits: number }): void
 }>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -25,10 +27,22 @@ const LANE_WIDTH = CANVAS_WIDTH / 3
 const GAME_DURATION = 30
 
 let isPlaying = false
-let currentLives = props.lives
+let currentLives = 0
 let startTime = 0
 let hits = 0
 let speedMultiplier = props.transportSpeed
+
+const transportStats = computed(() => {
+  switch (props.transportType) {
+    case 'car':
+      return {lives: 5, cost: 1200};
+    case 'scooter':
+      return {lives: 4, cost: 900};
+    case 'bike':
+    default:
+      return {lives: 3, cost: 700};
+  }
+})
 
 const player = {
   lane: 1,
@@ -151,7 +165,7 @@ const startGame = () => {
   if (!canvasRef.value) return
   ctx = canvasRef.value.getContext('2d')
 
-  currentLives = props.lives
+  currentLives = transportStats.value.lives
   speedMultiplier = props.transportSpeed
   obstacles = []
   hits = 0
@@ -171,12 +185,11 @@ const endGame = () => {
   window.removeEventListener('keydown', handleKeyDown)
   cancelAnimationFrame(animationFrameId)
 
-  const balanceLost = hits * 50
   const timeResult = currentLives > 0 ? 'fast' : 'slow'
 
   emit('gameOver', {
     time: timeResult,
-    balanceLost: balanceLost,
+    tripCost: transportStats.value.cost,
     hits: hits
   })
 }
