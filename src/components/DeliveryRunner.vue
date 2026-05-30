@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted, computed} from 'vue'
 
+import bgAsphalt from '../assets/asphalt.png'
+import imgBike from '../assets/bike.png'
+import imgScooter from '../assets/scooter.png'
+import imgCar from '../assets/car.png'
+import imgObs1 from '../assets/obs-car1.png'
+import imgObs2 from '../assets/obs-car2.png'
+import imgObs3 from '../assets/obs-car3.png'
+
 type TransportType = 'bike' | 'scooter' | 'car';
 
 interface Props {
@@ -17,6 +25,24 @@ const emit = defineEmits<{
   (e: 'gameOver', result: { time: 'fast' | 'slow'; tripCost: number; hits: number }): void
 }>()
 
+const textures = {
+  background: new Image(),
+  player: {
+    bike: new Image(),
+    scooter: new Image(),
+    car: new Image()
+  },
+  obstacles: [new Image(), new Image(), new Image()]
+}
+
+textures.background.src = bgAsphalt
+textures.player.bike.src = imgBike
+textures.player.scooter.src = imgScooter
+textures.player.car.src = imgCar
+textures.obstacles[0].src = imgObs1
+textures.obstacles[1].src = imgObs2
+textures.obstacles[2].src = imgObs3
+
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let ctx: CanvasRenderingContext2D | null = null
 let animationFrameId: number
@@ -31,6 +57,7 @@ let currentLives = 0
 let startTime = 0
 let hits = 0
 let speedMultiplier = props.transportSpeed
+let bgOffsetY = 0
 
 const transportStats = computed(() => {
   switch (props.transportType) {
@@ -58,6 +85,7 @@ interface Obstacle {
   width: number;
   height: number;
   passed: boolean;
+  textureIndex: number;
 }
 
 let obstacles: Obstacle[] = []
@@ -81,8 +109,9 @@ const spawnObstacle = () => {
       lane: Math.floor(Math.random() * 3),
       y: -50,
       width: 50,
-      height: 50,
-      passed: false
+      height: 80,
+      passed: false,
+      textureIndex: Math.floor(Math.random() * 3)
     })
   }
 }
@@ -105,22 +134,39 @@ const gameLoop = (timestamp: number) => {
   const MAX_SPEED = 18
   speedMultiplier = props.transportSpeed + (MAX_SPEED - props.transportSpeed) * sigmoidValue
 
-  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  if (textures.background.complete && textures.background.naturalWidth !== 0) {
+    bgOffsetY += speedMultiplier;
+    if (bgOffsetY >= CANVAS_HEIGHT) bgOffsetY = 0;
 
-  ctx.strokeStyle = '#ecf0f1'
+    ctx.drawImage(textures.background, 0, bgOffsetY, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.drawImage(textures.background, 0, bgOffsetY - CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
+  } else {
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+  ctx.setLineDash([20, 20]);
   ctx.beginPath()
   ctx.moveTo(LANE_WIDTH, 0)
   ctx.lineTo(LANE_WIDTH, CANVAS_HEIGHT)
   ctx.moveTo(LANE_WIDTH * 2, 0)
   ctx.lineTo(LANE_WIDTH * 2, CANVAS_HEIGHT)
   ctx.stroke()
+  ctx.setLineDash([]);
 
   const targetX = player.lane * LANE_WIDTH + (LANE_WIDTH - player.width) / 2
   player.currentX += (targetX - player.currentX) * 0.15
 
   const playerY = CANVAS_HEIGHT - player.height - 20
-  ctx.fillStyle = player.color
-  ctx.fillRect(player.currentX, playerY, player.width, player.height)
+  const currentPlayerTexture = textures.player[props.transportType];
+
+  if (currentPlayerTexture.complete && currentPlayerTexture.naturalWidth !== 0) {
+    ctx.drawImage(currentPlayerTexture, player.currentX, playerY, player.width, player.height)
+  } else {
+    ctx.fillStyle = player.color
+    ctx.fillRect(player.currentX, playerY, player.width, player.height)
+  }
 
   spawnObstacle()
 
@@ -129,9 +175,14 @@ const gameLoop = (timestamp: number) => {
     obs.y += speedMultiplier
 
     const obsX = obs.lane * LANE_WIDTH + (LANE_WIDTH - obs.width) / 2
+    const obsTexture = textures.obstacles[obs.textureIndex];
 
-    ctx.fillStyle = '#e74c3c'
-    ctx.fillRect(obsX, obs.y, obs.width, obs.height)
+    if (obsTexture.complete && obsTexture.naturalWidth !== 0) {
+      ctx.drawImage(obsTexture, obsX, obs.y, obs.width, obs.height)
+    } else {
+      ctx.fillStyle = '#e74c3c'
+      ctx.fillRect(obsX, obs.y, obs.width, obs.height)
+    }
 
     const isColliding =
         player.currentX < obsX + obs.width &&
@@ -153,8 +204,8 @@ const gameLoop = (timestamp: number) => {
     }
   }
 
-  ctx.fillStyle = '#2c3e50'
-  ctx.font = '20px Arial'
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 20px Arial'
   ctx.fillText(`Життя: ${currentLives}`, 10, 30)
   ctx.fillText(`Час: ${timeLeft} с`, CANVAS_WIDTH - 110, 30)
 
@@ -169,6 +220,7 @@ const startGame = () => {
   speedMultiplier = props.transportSpeed
   obstacles = []
   hits = 0
+  bgOffsetY = 0
 
   player.lane = 1
   player.currentX = LANE_WIDTH + (LANE_WIDTH - 40) / 2
@@ -227,7 +279,6 @@ onUnmounted(() => {
 }
 
 .runner-canvas {
-  background: #95a5a6;
   border: 4px solid #2c3e50;
   border-radius: 8px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
