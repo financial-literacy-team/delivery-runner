@@ -90,12 +90,35 @@ interface Obstacle {
 
 let obstacles: Obstacle[] = []
 
+// --- КЕРУВАННЯ: КЛАВІАТУРА ---
 const handleKeyDown = (e: KeyboardEvent) => {
   if (!isPlaying) return
   if (e.key === 'ArrowLeft' && player.lane > 0) {
     player.lane--
   } else if (e.key === 'ArrowRight' && player.lane < 2) {
     player.lane++
+  }
+}
+
+// --- КЕРУВАННЯ: СВАЙПИ ---
+let touchStartX = 0;
+
+const handleTouchStart = (e: TouchEvent) => {
+  if (!isPlaying) return;
+  touchStartX = e.changedTouches[0].screenX;
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  if (!isPlaying) return;
+
+  const touchEndX = e.changedTouches[0].screenX;
+  const swipeDistance = touchEndX - touchStartX;
+  const MIN_SWIPE_DISTANCE = 30;
+
+  if (swipeDistance < -MIN_SWIPE_DISTANCE && player.lane > 0) {
+    player.lane--;
+  } else if (swipeDistance > MIN_SWIPE_DISTANCE && player.lane < 2) {
+    player.lane++;
   }
 }
 
@@ -290,12 +313,22 @@ const startGame = () => {
   isPlaying = true
 
   window.addEventListener('keydown', handleKeyDown)
+  if (canvasRef.value) {
+    canvasRef.value.addEventListener('touchstart', handleTouchStart, {passive: false})
+    canvasRef.value.addEventListener('touchend', handleTouchEnd, {passive: false})
+  }
+
   animationFrameId = requestAnimationFrame(gameLoop)
 }
 
 const endGame = () => {
   isPlaying = false
   window.removeEventListener('keydown', handleKeyDown)
+  if (canvasRef.value) {
+    canvasRef.value.removeEventListener('touchstart', handleTouchStart)
+    canvasRef.value.removeEventListener('touchend', handleTouchEnd)
+  }
+
   cancelAnimationFrame(animationFrameId)
 
   const timeResult = currentLives > 0 ? 'fast' : 'slow'
@@ -314,6 +347,11 @@ onMounted(() => {
 onUnmounted(() => {
   isPlaying = false
   window.removeEventListener('keydown', handleKeyDown)
+  if (canvasRef.value) {
+    canvasRef.value.removeEventListener('touchstart', handleTouchStart)
+    canvasRef.value.removeEventListener('touchend', handleTouchEnd)
+  }
+
   cancelAnimationFrame(animationFrameId)
 })
 </script>
@@ -343,5 +381,6 @@ onUnmounted(() => {
   border: 4px solid #2c3e50;
   border-radius: 8px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  touch-action: none;
 }
 </style>
