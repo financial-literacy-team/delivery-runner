@@ -1,6 +1,6 @@
 {
   "name": "@financial-literacy-team/delivery-runner",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Delivery mini-game for financial literacy game",
   "keywords": [
     "runner"
