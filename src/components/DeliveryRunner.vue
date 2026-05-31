@@ -74,8 +74,8 @@ const transportStats = computed(() => {
 const player = {
   lane: 1,
   currentX: LANE_WIDTH + (LANE_WIDTH - 40) / 2,
-  width: 40,
-  height: 60,
+  width: 60,
+  height: 90,
   color: '#3498db'
 }
 
@@ -100,16 +100,16 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 const spawnObstacle = () => {
-  const MIN_GAP = 220;
+  const MIN_GAP = 330;
   const lastObstacle = obstacles[obstacles.length - 1];
-  const canSpawn = !lastObstacle || (lastObstacle.y > MIN_GAP - 50);
+  const canSpawn = !lastObstacle || (lastObstacle.y > MIN_GAP - 75);
 
   if (canSpawn && Math.random() < 0.02 * (speedMultiplier / 5)) {
     obstacles.push({
       lane: Math.floor(Math.random() * 3),
       y: -50,
-      width: 50,
-      height: 80,
+      width: 75,
+      height: 120,
       passed: false,
       textureIndex: Math.floor(Math.random() * 3)
     })
@@ -134,6 +134,11 @@ const gameLoop = (timestamp: number) => {
   const MAX_SPEED = 18
   speedMultiplier = props.transportSpeed + (MAX_SPEED - props.transportSpeed) * sigmoidValue
 
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 5;
+  ctx.shadowOffsetY = 5;
+
   if (textures.background.complete && textures.background.naturalWidth !== 0) {
     bgOffsetY += speedMultiplier;
     if (bgOffsetY >= CANVAS_HEIGHT) bgOffsetY = 0;
@@ -141,19 +146,27 @@ const gameLoop = (timestamp: number) => {
     ctx.drawImage(textures.background, 0, bgOffsetY, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.drawImage(textures.background, 0, bgOffsetY - CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
   } else {
-    ctx.fillStyle = '#2c3e50';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-  ctx.setLineDash([20, 20]);
-  ctx.beginPath()
-  ctx.moveTo(LANE_WIDTH, 0)
-  ctx.lineTo(LANE_WIDTH, CANVAS_HEIGHT)
-  ctx.moveTo(LANE_WIDTH * 2, 0)
-  ctx.lineTo(LANE_WIDTH * 2, CANVAS_HEIGHT)
-  ctx.stroke()
+  ctx.shadowColor = 'transparent';
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([50, 50]);
+  ctx.lineDashOffset = -bgOffsetY;
+
+  ctx.beginPath();
+  ctx.moveTo(LANE_WIDTH, 0);
+  ctx.lineTo(LANE_WIDTH, CANVAS_HEIGHT);
+  ctx.moveTo(LANE_WIDTH * 2, 0);
+  ctx.lineTo(LANE_WIDTH * 2, CANVAS_HEIGHT);
+  ctx.stroke();
+
   ctx.setLineDash([]);
+  ctx.lineDashOffset = 0;
+  ctx.lineWidth = 1;
 
   const targetX = player.lane * LANE_WIDTH + (LANE_WIDTH - player.width) / 2
   player.currentX += (targetX - player.currentX) * 0.15
@@ -161,12 +174,19 @@ const gameLoop = (timestamp: number) => {
   const playerY = CANVAS_HEIGHT - player.height - 20
   const currentPlayerTexture = textures.player[props.transportType];
 
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 5;
+  ctx.shadowOffsetY = 5;
+
   if (currentPlayerTexture.complete && currentPlayerTexture.naturalWidth !== 0) {
     ctx.drawImage(currentPlayerTexture, player.currentX, playerY, player.width, player.height)
   } else {
     ctx.fillStyle = player.color
     ctx.fillRect(player.currentX, playerY, player.width, player.height)
   }
+
+  ctx.shadowColor = 'transparent';
 
   spawnObstacle()
 
@@ -177,6 +197,11 @@ const gameLoop = (timestamp: number) => {
     const obsX = obs.lane * LANE_WIDTH + (LANE_WIDTH - obs.width) / 2
     const obsTexture = textures.obstacles[obs.textureIndex];
 
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 5;
+
     if (obsTexture.complete && obsTexture.naturalWidth !== 0) {
       ctx.drawImage(obsTexture, obsX, obs.y, obs.width, obs.height)
     } else {
@@ -184,11 +209,19 @@ const gameLoop = (timestamp: number) => {
       ctx.fillRect(obsX, obs.y, obs.width, obs.height)
     }
 
-    const isColliding =
-        player.currentX < obsX + obs.width &&
-        player.currentX + player.width > obsX &&
-        playerY < obs.y + obs.height &&
-        playerY + player.height > obs.y
+    ctx.shadowColor = 'transparent';
+
+    const marginX = 15;
+    const marginY = 20;
+
+    const isPassed = obs.y > playerY + (player.height * 0.5);
+
+    const isColliding = !isPassed && (
+        (player.currentX + marginX) < (obsX + obs.width - marginX) &&
+        (player.currentX + player.width - marginX) > (obsX + marginX) &&
+        (playerY + marginY) < (obs.y + obs.height - marginY) &&
+        (playerY + player.height - marginY) > (obs.y + marginY)
+    );
 
     if (isColliding) {
       obstacles.splice(i, 1)
@@ -205,7 +238,11 @@ const gameLoop = (timestamp: number) => {
   }
 
   ctx.fillStyle = '#ffffff'
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 3
   ctx.font = 'bold 20px Arial'
+  ctx.strokeText(`Життя: ${currentLives}`, 10, 30)
+  ctx.strokeText(`Час: ${timeLeft} с`, CANVAS_WIDTH - 110, 30)
   ctx.fillText(`Життя: ${currentLives}`, 10, 30)
   ctx.fillText(`Час: ${timeLeft} с`, CANVAS_WIDTH - 110, 30)
 
