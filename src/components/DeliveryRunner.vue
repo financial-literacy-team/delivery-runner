@@ -102,11 +102,35 @@ const handleKeyDown = (e: KeyboardEvent) => {
 const spawnObstacle = () => {
   const MIN_GAP = 330;
   const lastObstacle = obstacles[obstacles.length - 1];
+
   const canSpawn = !lastObstacle || (lastObstacle.y > MIN_GAP - 75);
 
   if (canSpawn && Math.random() < 0.02 * (speedMultiplier / 5)) {
+
+    let targetLane = 1;
+    const rand = Math.random();
+
+    if (player.lane === 0) {
+      // Гравець на лівій смузі
+      if (rand < 0.50) targetLane = 0;       // 50% шанс появи на поточній смузі
+      else if (rand < 0.80) targetLane = 1;  // 30% шанс на найближчій (центральній)
+      else targetLane = 2;                   // 20% шанс на найдальшій смузі
+
+    } else if (player.lane === 2) {
+      // Гравець на правій смузі
+      if (rand < 0.50) targetLane = 2;       // 50% шанс появи на поточній смузі
+      else if (rand < 0.80) targetLane = 1;  // 30% шанс на найближчій (центральній)
+      else targetLane = 0;                   // 20% шанс на найдальшій смузі
+
+    } else {
+      // Гравець на центральній смузі
+      if (rand < 0.50) targetLane = 1;       // 50% шанс появи на поточній смузі
+      else if (rand < 0.75) targetLane = 0;  // 25% шанс на лівій смузі
+      else targetLane = 2;                   // 25% шанс на правій смузі
+    }
+
     obstacles.push({
-      lane: Math.floor(Math.random() * 3),
+      lane: targetLane,
       y: -50,
       width: 75,
       height: 120,
