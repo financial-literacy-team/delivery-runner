@@ -11,6 +11,16 @@ import imgObs3 from '../assets/obs-car3.png'
 
 type TransportType = 'bike' | 'scooter' | 'car';
 
+const textures = {
+  background: new Image(),
+  player: {
+    bike: new Image(),
+    scooter: new Image(),
+    car: new Image()
+  },
+  obstacles: [new Image(), new Image(), new Image()] as [HTMLImageElement, HTMLImageElement, HTMLImageElement]
+}
+
 interface Props {
   transportType: TransportType;
   transportSpeed?: number;
@@ -24,16 +34,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'gameOver', result: { time: 'fast' | 'slow'; tripCost: number; hits: number }): void
 }>()
-
-const textures = {
-  background: new Image(),
-  player: {
-    bike: new Image(),
-    scooter: new Image(),
-    car: new Image()
-  },
-  obstacles: [new Image(), new Image(), new Image()]
-}
 
 textures.background.src = bgAsphalt
 textures.player.bike.src = imgBike
@@ -105,13 +105,17 @@ let touchStartX = 0;
 
 const handleTouchStart = (e: TouchEvent) => {
   if (!isPlaying) return;
-  touchStartX = e.changedTouches[0].screenX;
+  const touch = e.changedTouches.item(0)
+  if (!touch) return
+  touchStartX = touch.screenX
 }
 
 const handleTouchEnd = (e: TouchEvent) => {
   if (!isPlaying) return;
 
-  const touchEndX = e.changedTouches[0].screenX;
+  const touch = e.changedTouches.item(0)
+  if (!touch) return
+  const touchEndX = touch.screenX
   const swipeDistance = touchEndX - touchStartX;
   const MIN_SWIPE_DISTANCE = 30;
 
@@ -239,10 +243,11 @@ const gameLoop = (timestamp: number) => {
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i]
+    if (!obs) continue
     obs.y += speedMultiplier
 
     const obsX = obs.lane * LANE_WIDTH + (LANE_WIDTH - obs.width) / 2
-    const obsTexture = textures.obstacles[obs.textureIndex];
+    const obsTexture = textures.obstacles[obs.textureIndex] ?? textures.obstacles[0]
 
     ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 10;
