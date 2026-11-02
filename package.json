@@ -1,6 +1,6 @@
 {
   "name": "@financial-literacy-team/delivery-runner",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Delivery mini-game for financial literacy game",
   "keywords": [
     "runner"
@@ -15,14 +15,20 @@
   },
   "license": "ISC",
   "author": "govUA",
-  "type": "commonjs",
-  "main": "dist/delivery-runner.umd.ts",
-  "module": "dist/delivery-runner.es.ts",
+  "type": "module",
+  "main": "./dist/delivery-runner.umd.cjs",
+  "module": "./dist/delivery-runner.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
-      "import": "./dist/delivery-runner.es.ts",
-      "require": "./dist/delivery-runner.umd.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/delivery-runner.js",
+      "require": "./dist/delivery-runner.umd.cjs"
+    },
+    "./dist/delivery-runner.css": "./dist/delivery-runner.css"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -30,12 +36,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.7",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.14",
-    "vue": "^3.5.34"
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/language-core": "^2.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^5.1.1",
+    "vue": "^3.5.34",
+    "vue-tsc": "^2.2.0"
   }
 }

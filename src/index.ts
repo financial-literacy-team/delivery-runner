@@ -7,3 +7,5 @@ export interface RunnerResults {
     tripCost: number;
     hits: number;
 }
+
+export default DeliveryRunner

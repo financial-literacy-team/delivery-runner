@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted, computed} from 'vue'
 
-import bgAsphalt from '../assets/asphalt.png'
-import imgBike from '../assets/bike.png'
-import imgScooter from '../assets/scooter.png'
-import imgCar from '../assets/car.png'
-import imgObs1 from '../assets/obs-car1.png'
-import imgObs2 from '../assets/obs-car2.png'
-import imgObs3 from '../assets/obs-car3.png'
+import bgAsphalt from '../assets/asphalt.webp'
+import imgBike from '../assets/bike.webp'
+import imgScooter from '../assets/scooter.webp'
+import imgCar from '../assets/car.webp'
+import imgObs1 from '../assets/obs-car1.webp'
+import imgObs2 from '../assets/obs-car2.webp'
+import imgObs3 from '../assets/obs-car3.webp'
 
 type TransportType = 'bike' | 'scooter' | 'car';
 
